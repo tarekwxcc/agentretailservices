@@ -1,0 +1,101 @@
+/* Example styles inspired by BRP */
+
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f5f5f5; /* Similar to BRP's background */
+  color: #333; /* General text color */
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background-color: #000; /* BRP uses a black header */
+  color: white;
+  padding: 15px 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+header h1 {
+  margin: 0;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  background-color: #111; /* Dark navigation background */
+}
+
+nav ul li {
+  margin: 0 20px;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+nav ul li a:hover {
+  text-decoration: underline;
+}
+
+main {
+  padding: 20px;
+  text-align: center;
+}
+
+h1 {
+  color: #222; /* Slightly darker headline color */
+}
+
+button {
+  background-color: #e60000; /* BRP uses a strong red color */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #cc0000; /* Darken on hover */
+}
+
+footer {
+  background-color: #111;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+}
+
+.reservation-details {
+  background-color: #fff;
+  padding: 20px;
+  margin: 20px 0;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+table, th, td {
+  border: 1px solid #ddd;
+}
+
+th {
+  background-color: #f5f5f5;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Agent Order - RetailExpert Services</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <h1>RetailExpert Services</h1>
+    <nav>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/verify-payment">Verify Payment</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <h1>Place an Order</h1>
+    <form action="/order" method="POST">
+      <label for="firstName">First Name:</label>
+      <input type="text" id="firstName" name="firstName" required>
+      
+      <label for="lastName">Last Name:</label>
+      <input type="text" id="lastName" name="lastName" required>
+      
+      <label for="product">Product:</label>
+      <select id="product" name="product" required>
+        <option value="Sea-Doo GTX Limited 300">Sea-Doo GTX Limited 300</option>
+        <option value="Can-Am Maverick X3">Can-Am Maverick X3</option>
+        <option value="Ski-Doo MXZ X-RS 850 E-TEC">Ski-Doo MXZ X-RS 850 E-TEC</option>
+        <!-- Add more products as needed -->
+      </select>
+      
+      <button type="submit">Make Order</button>
+    </form>
+  </main>
+  <footer>
+    <p>&copy; 2024 Tarek retail Services. All rights reserved.</p>
+  </footer>
+</body>
+</html>
