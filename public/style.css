@@ -1,90 +1,120 @@
-/* Example styles inspired by BRP */
-
+/* Base Styles */
 body {
   font-family: 'Helvetica Neue', Arial, sans-serif;
-  background-color: #f5f5f5; /* Similar to BRP's background */
-  color: #333; /* General text color */
+  background-color: #ffffff; /* White background for a clean look */
+  color: #333; /* Dark gray text for readability */
   margin: 0;
   padding: 0;
 }
 
+/* Header */
 header {
-  background-color: #000; /* BRP uses a black header */
+  background-color: #000; /* Black header */
   color: white;
-  padding: 15px 0;
+  padding: 20px 0;
   text-align: center;
   font-weight: bold;
+  font-size: 18px;
+  letter-spacing: 1.5px;
 }
 
 header h1 {
   margin: 0;
+  font-size: 28px;
 }
 
+/* Navigation */
 nav ul {
   list-style: none;
   padding: 0;
+  margin: 0;
   display: flex;
   justify-content: center;
-  background-color: #111; /* Dark navigation background */
+  background-color: #111; /* Dark gray for the navigation bar */
 }
 
 nav ul li {
-  margin: 0 20px;
+  margin: 0 10px;
 }
 
 nav ul li a {
   color: white;
   text-decoration: none;
   font-weight: bold;
+  font-size: 14px;
+  padding: 15px 20px;
+  display: block;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 nav ul li a:hover {
-  text-decoration: underline;
-}
-
-main {
-  padding: 20px;
-  text-align: center;
-}
-
-h1 {
-  color: #222; /* Slightly darker headline color */
-}
-
-button {
-  background-color: #e60000; /* BRP uses a strong red color */
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  background-color: #cc0000; /* Darken on hover */
-}
-
-footer {
-  background-color: #111;
-  color: white;
-  text-align: center;
-  padding: 10px 0;
-}
-
-.reservation-details {
-  background-color: #fff;
-  padding: 20px;
-  margin: 20px 0;
+  background-color: #007aff; /* Blue hover effect similar to BRP */
+  color: #ffffff;
   border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Main Content */
+main {
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
   text-align: left;
 }
 
+h1 {
+  color: #222;
+  font-size: 32px;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+p {
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+/* Buttons */
+button, input[type="submit"] {
+  background-color: #007aff; /* Blue button color similar to BRP */
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+button:hover, input[type="submit"]:hover {
+  background-color: #005bb5; /* Darker blue on hover */
+}
+
+/* Forms */
+form {
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: #f7f7f7; /* Light gray background for forms */
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+input[type="text"], select {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+}
+
+/* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
   margin: 20px 0;
+  background-color: #fff; /* White table background */
 }
 
 table, th, td {
@@ -92,10 +122,33 @@ table, th, td {
 }
 
 th {
-  background-color: #f5f5f5;
+  background-color: #f1f1f1;
+  font-weight: bold;
+  padding: 12px;
 }
 
-th, td {
+td {
   padding: 12px;
   text-align: left;
+}
+
+/* Footer */
+footer {
+  background-color: #111; /* Dark footer */
+  color: white;
+  text-align: center;
+  padding: 15px 0;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+/* Links */
+a {
+  color: #007aff;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: #005bb5; /* Darker blue on hover */
 }

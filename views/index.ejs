@@ -1,41 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Agent Order - RetailExpert Services</title>
+  <title>Agent Order - BRP Services</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <header>
-    <h1>RetailExpert Services</h1>
+    <h1><%= headerText %></h1> <!-- Dynamic header text -->
     <nav>
       <ul>
         <li><a href="/">Home</a></li>
+        <li><a href="/verify">Verify</a></li> <!-- Updated to point to the generic verify route -->
+        <li><a href="/order">Initiate Warranty Extension</a></li> <!-- Update if necessary -->
         <li><a href="/verify-payment">Verify Payment</a></li>
       </ul>
     </nav>
   </header>
   <main>
-    <h1>Place an Order</h1>
-    <form action="/order" method="POST">
-      <label for="firstName">First Name:</label>
-      <input type="text" id="firstName" name="firstName" required>
-      
-      <label for="lastName">Last Name:</label>
-      <input type="text" id="lastName" name="lastName" required>
-      
-      <label for="product">Product:</label>
-      <select id="product" name="product" required>
-        <option value="Sea-Doo GTX Limited 300">Sea-Doo GTX Limited 300</option>
-        <option value="Can-Am Maverick X3">Can-Am Maverick X3</option>
-        <option value="Ski-Doo MXZ X-RS 850 E-TEC">Ski-Doo MXZ X-RS 850 E-TEC</option>
-        <!-- Add more products as needed -->
-      </select>
-      
-      <button type="submit">Make Order</button>
-    </form>
+    <h1><%= welcomeText %></h1> <!-- Dynamic welcome text -->
+    <p><%= instructionText %></p> <!-- Dynamic instruction text -->
+    <ul>
+      <li><a href="/verify"><%= verifyText %></a></li> <!-- Link for the generic verify page -->
+      <li><a href="/order"><%= initiateOrderText %></a></li> <!-- Link for initiating order -->
+      <li><a href="/verify-payment"><%= generateLinkText %></a></li> <!-- Link for verifying payment -->
+    </ul>
   </main>
   <footer>
-    <p>&copy; 2024 Tarek retail Services. All rights reserved.</p>
+    <p><%= footerText %></p>
   </footer>
 </body>
 </html>

@@ -1,37 +1,41 @@
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Confirm Order - RetailExpert Services</title>
-          <link rel="stylesheet" href="/style.css">
-        </head>
-        <body>
-          <header>
-            <h1>RetailExpert Services</h1>
-            <nav>
-              <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/verify-payment">Verify Payment</a></li>
-              </ul>
-            </nav>
-          </header>
-          <main>
-            <h1>Confirm Order</h1>
-            <div class="reservation-details">
-              <h2>Order Details</h2>
-              <p><strong>Order Number:</strong> <%= reservation.reservationNumber %></p>
-              <p><strong>Product:</strong> <%= reservation.product %></p> <!-- Updated field -->
-              <p><strong>Quantity:</strong> 1</p>
-              <p><strong>Price:</strong> <%= reservation.totalPrice %></p>
-              <p><strong>Customer:</strong> <%= reservation.firstName %> <%= reservation.lastName %></p>
-              <p><strong>Estimated Time of Arrival (ETA):</strong> <%= reservation.eta %></p> <!-- Added ETA -->
-            </div>
-            <form action="/confirm" method="POST">
-              <input type="hidden" name="reservation" value='<%= JSON.stringify(reservation) %>'>
-              <button type="submit">Confirm and Send Payment Link</button>
-            </form>
-          </main>
-          <footer>
-            <p>&copy; 2024 RetailExpert Services. All rights reserved.</p>
-          </footer>
-        </body>
-        </html>
+                      <!DOCTYPE html>
+                      <html>
+                      <head>
+                        <title>Order Confirmation - BRP Services</title>
+                        <link rel="stylesheet" href="/style.css">
+                      </head>
+                      <body>
+                        <header>
+                          <h1>BRP Services</h1>
+                          <nav>
+                            <ul>
+                              <li><a href="/">Home</a></li>
+                            </ul>
+                          </nav>
+                        </header>
+                        <main>
+                          <h1>Order Confirmation</h1>
+                          <p>Thank you, <%= warrantyExtension.firstName %> <%= warrantyExtension.lastName %>.</p>
+                          <p>Your warranty for the product ID <%= warrantyExtension.productId %> with serial number <%= warrantyExtension.serialNumber %> has been successfully extended.</p>
+                          <p>Selected Package: <%= warrantyExtension.package %></p>
+                          <p>Total Price: <%= warrantyExtension.totalPrice %></p>
+                          <p>New Expiration Date: <%= warrantyExtension.expirationDate %></p>
+
+                          <% if (!paymentLink) { %>
+                            <form action="/generate-payment-link" method="POST">
+                              <input type="hidden" name="firstName" value="<%= warrantyExtension.firstName %>">
+                              <input type="hidden" name="lastName" value="<%= warrantyExtension.lastName %>">
+                              <input type="hidden" name="product" value="<%= warrantyExtension.package %>">
+                              <input type="hidden" name="productId" value="<%= warrantyExtension.productId %>">
+                              <input type="hidden" name="serialNumber" value="<%= warrantyExtension.serialNumber %>">
+                              <button type="submit">Generate Payment Link</button>
+                            </form>
+                          <% } else { %>
+                            <p>Payment Link: <a href="<%= paymentLink %>">Click here to pay</a></p>
+                          <% } %>
+                        </main>
+                        <footer>
+                          <p>&copy; 2024 Tarek Manufacturing Services. All rights reserved.</p>
+                        </footer>
+                      </body>
+                      </html>

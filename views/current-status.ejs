@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= headerText %> - <%= verticalName %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <h1><%= statusHeader %></h1> <!-- Dynamic header based on vertical -->
+  </header>
+  <main>
+    <h2><%= detailsTitle %></h2> <!-- Dynamic title based on vertical -->
+    <p><%= productLabel %>: <%= productInfo.productName %></p> <!-- Dynamic product label -->
+    <p><%= serialLabel %>: <%= productInfo.serialNumber %></p> <!-- Dynamic serial label -->
+    <p><%= statusLabel %>: <%= productInfo.orderStatus || productInfo.bookingStatus %></p> <!-- Dynamic status label -->
+    <p><%= amountLabel %>: <%= productInfo.totalAmount %></p> <!-- Dynamic amount label -->
+  </main>
+  <footer>
+    <p><%= footerText %></p> <!-- Dynamic footer text -->
+  </footer>
+</body>
+</html>
