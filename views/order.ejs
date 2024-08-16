@@ -1,46 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Initiate Warranty Extension - BRP Services</title>
+  <title><%= pageTitle %></title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <header>
-    <h1>BRP Services</h1>
-    <nav>
-      <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/verify-payment">Verify Payment</a></li>
-      </ul>
-    </nav>
+    <h1><%= headerText %></h1>
   </header>
   <main>
-    <h1>Initiate Warranty Extension</h1>
+    <h2><%= instructionText %></h2>
     <form action="/order" method="POST">
-      <label for="firstName">First Name:</label>
+      <label for="firstName"><%= firstNameLabel %>:</label>
       <input type="text" id="firstName" name="firstName" required>
 
-      <label for="lastName">Last Name:</label>
+      <label for="lastName"><%= lastNameLabel %>:</label>
       <input type="text" id="lastName" name="lastName" required>
 
-      <label for="product">Warranty Package:</label>
+      <label for="product"><%= productLabel %>:</label>
       <select id="product" name="product" required>
-        <option value="1-Year Warranty Extension">1-Year Warranty Extension</option>
-        <option value="2-Year Warranty Extension">2-Year Warranty Extension</option>
-        <option value="3-Year Warranty Extension">3-Year Warranty Extension</option>
+        <% products.forEach(product => { %>
+          <option value="<%= product.id %>"><%= product.name %></option>
+        <% }); %>
       </select>
 
-      <label for="productId">Product ID:</label>
-      <input type="text" id="productId" name="productId" required>
-
-      <label for="serialNumber">Serial Number (S/N):</label>
-      <input type="text" id="serialNumber" name="serialNumber" required>
-
-      <button type="submit">Submit Order</button>
+      <button type="submit"><%= submitButtonText %></button>
     </form>
   </main>
   <footer>
-    <p>&copy; 2024 Tarek Manufacturing Services. All rights reserved.</p>
+    <p>&copy; 2024 Tarek Retail Services. All rights reserved.</p>
   </footer>
 </body>
 </html>

@@ -137,7 +137,7 @@ app.get("/verify", async (req, res) => {
     }
 });
 
-// Route: Handle Warranty Verification Submission (POST) and Render Current Status
+// Route: Handle Verify (POST) and Render Current Status
 app.post("/verify", async (req, res) => {
     const { productId, serialNumber } = req.body;
 
@@ -217,73 +217,127 @@ app.get("/current-status", async (req, res) => {
 });
 
 // Route: Render the Order Page (GET)
-app.get("/order", (req, res) => {
-  res.render("order");
+app.get("/order", async (req, res) => {
+    try {
+        // Fetch the current active vertical(s) from the "Current Vertical" table
+        const verticalRecords = await base('Current Vertical').select({}).firstPage();
+        const activeVertical = verticalRecords[0].fields['Vertical'];
+
+        // Fetch the configuration for the active vertical from the "Configuration Table"
+        const configRecords = await base('Configuration Table').select({
+            filterByFormula: `{Vertical} = '${activeVertical}'`
+        }).firstPage();
+
+        if (configRecords.length > 0) {
+            // Safely parse the JSON fields
+            const orderPageElementsField = configRecords[0].fields['orderPageElements'];
+            const orderPageElements = orderPageElementsField ? JSON.parse(orderPageElementsField) : {};
+
+            // Safely parse the product list (assuming it's in the same table)
+            const productsField = configRecords[0].fields['ProductVerified'];
+            const productsData = productsField ? JSON.parse(productsField) : {};
+
+            // Convert the productsData into a format suitable for the dropdown
+            const products = Object.keys(productsData).map(productId => ({
+                id: productId,
+                name: productsData[productId].productName
+            }));
+
+            // Render the order page with dynamic content and the list of products
+            res.render("order", {
+                pageTitle: orderPageElements.pageTitle || "Order Your Product",
+                headerText: orderPageElements.headerText || "Retail Services - Order Your Product",
+                instructionText: orderPageElements.instructionText || "Please fill out the details below to initiate your order.",
+                firstNameLabel: orderPageElements.firstNameLabel || "First Name",
+                lastNameLabel: orderPageElements.lastNameLabel || "Last Name",
+                productLabel: orderPageElements.productLabel || "Product",
+                products, // Pass the products list to the view
+                submitButtonText: orderPageElements.submitButtonText || "Submit Order"
+            });
+        } else {
+            // Render a generic error message or fallback view
+            res.status(404).send("Configuration not found for the selected vertical.");
+        }
+    } catch (error) {
+        console.error("Error fetching configuration from Airtable:", error);
+        res.status(500).send('Server Error');
+    }
 });
 
 // Route: Handle Order Submission (POST)
 app.post("/order", async (req, res) => {
-  const { firstName, lastName, product, productId, serialNumber } = req.body;
+  const { firstName, lastName, product } = req.body; // Here `product` is the selected Product ID.
 
-  // Calculate the new expiration date based on the selected package
-  const currentDate = new Date();
-  let yearsToAdd = 0;
-
-  if (product === "1-Year Warranty Extension") {
-    yearsToAdd = 1;
-  } else if (product === "2-Year Warranty Extension") {
-    yearsToAdd = 2;
-  } else if (product === "3-Year Warranty Extension") {
-    yearsToAdd = 3;
-  }
-
-  const expirationDate = new Date(currentDate.setFullYear(currentDate.getFullYear() + yearsToAdd));
-
-  const warrantyExtension = {
-    warrantyNumber: "BRP-WARRANTY-2024",
-    package: product,
-    totalPrice: "1499$",
-    firstName,
-    lastName,
-    productId,
-    serialNumber,
-    expirationDate: expirationDate.toLocaleString('en-US', { timeZone: 'America/New_York' })
-  };
-
-  // Create a payment session with Stripe
   try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `Warranty Extension: ${product}`,
+    // Fetch the current active vertical
+    const verticalRecords = await base('Current Vertical').select({}).firstPage();
+    const activeVertical = verticalRecords[0].fields['Vertical'];
+
+    // Fetch the ProductVerified data for the active vertical
+    const configRecords = await base('Configuration Table').select({
+      filterByFormula: `{Vertical} = '${activeVertical}'`
+    }).firstPage();
+
+    if (configRecords.length > 0) {
+      const productVerifiedField = configRecords[0].fields['ProductVerified'];
+      const productVerified = productVerifiedField ? JSON.parse(productVerifiedField) : {};
+
+      // Fetch the details of the selected product using its ID
+      const productDetails = productVerified[product];
+
+      if (!productDetails) {
+        throw new Error("Product details are missing or incomplete.");
+      }
+
+      // Create the payment link using the product details
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: productDetails.productName,
+              },
+              unit_amount: parseInt(productDetails.totalAmount.replace('$', '')) * 100, // Convert to cents
             },
-            unit_amount: 149900, // price in cents
+            quantity: 1,
           },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${req.headers.origin}/success`,
-      cancel_url: `${req.headers.origin}/cancel`,
-    });
+        ],
+        mode: 'payment',
+        success_url: `${req.headers.origin}/success`,
+        cancel_url: `${req.headers.origin}/cancel`,
+      });
 
-    // Send the payment link to the webhook (this part is optional)
-    const webhookUrl = "https://hooks.us.webexconnect.io/events/QCVQY3V48T";
-    const message = `Thank you for trusting Tarek Manufacturing Services. We have generated a secure payment link for you: ${session.url}`;
+      // Prepare the orderDetails to be passed to the template
+      const orderDetails = {
+        productName: productDetails.productName,
+        orderId: product, // Assuming the product ID is the order ID
+        totalPrice: productDetails.totalAmount
+      };
 
-    await axios.post(webhookUrl, {
-      text: message,
-    });
+      // Send the payment link to the webhook (optional)
+      const webhookUrl = "https://hooks.us.webexconnect.io/events/QCVQY3V48T";
+      const message = `Thank you for your order. We have generated a secure payment link for you: ${session.url}`;
 
-    // Render confirmation page with the payment link
-    res.render("confirm", { warrantyExtension, paymentLink: session.url });
+      await axios.post(webhookUrl, {
+        text: message,
+      });
+
+      // Render the confirmation page with the payment link and order details
+      res.render("confirm", {
+        firstName,
+        lastName,
+        orderDetails,
+        paymentLink: session.url,
+        footerText: "Thank you for your order!"
+      });
+    } else {
+      res.status(404).send("Configuration not found for the selected vertical.");
+    }
   } catch (error) {
-    console.error("Error creating payment link:", error);
-    res.status(500).send(`Error creating payment link: ${error.message}`);
+    console.error("Error processing order:", error);
+    res.status500().send(`Error processing order: ${error.message}`);
   }
 });
 
@@ -299,84 +353,61 @@ app.get("/cancel", (req, res) => {
 
 // Route: Verify Payment (GET)
 app.get("/verify-payment", async (req, res) => {
-  try {
-    const paymentIntents = await stripe.paymentIntents.list({
-      limit: 1,
-    });
+    try {
+        // Fetch the current active vertical
+        const verticalRecords = await base('Current Vertical').select({}).firstPage();
+        const activeVertical = verticalRecords[0].fields['Vertical'];
 
-    if (paymentIntents.data.length === 0) {
-      return res.status(404).send("No transactions found.");
+        // Fetch the configuration for the active vertical from the "Configuration Table"
+        const configRecords = await base('Configuration Table').select({
+            filterByFormula: `{Vertical} = '${activeVertical}'`
+        }).firstPage();
+
+        if (configRecords.length > 0) {
+            // Safely parse the JSON for actionText
+            const actionTextsField = configRecords[0].fields['actionText'];
+            const actionTexts = actionTextsField ? JSON.parse(actionTextsField) : {};
+
+            const headerText = actionTexts.headerText || "Verify Payment";
+            const footerText = actionTexts.footerText || "&copy; 2024 Tarek Services. All rights reserved.";
+
+            // Fetch transaction details (this part remains unchanged)
+            const paymentIntents = await stripe.paymentIntents.list({ limit: 1 });
+
+            if (paymentIntents.data.length === 0) {
+                return res.status(404).send("No transactions found.");
+            }
+
+            const latestPayment = paymentIntents.data[0];
+            const charges = await stripe.charges.list({ payment_intent: latestPayment.id, limit: 1 });
+
+            if (charges.data.length === 0) {
+                return res.status(404).send("No charges found for the latest transaction.");
+            }
+
+            const latestCharge = charges.data[0];
+
+            const transaction = {
+                id: latestPayment.id,
+                customer: latestCharge.billing_details.name || 'Anonymous Customer',
+                status: latestPayment.status,
+                amount: (latestPayment.amount_received / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
+                paidDate: new Date(latestPayment.created * 1000).toLocaleString('en-US', { timeZone: 'America/New_York' }),
+            };
+
+            // Render the verify-payment view with dynamic content
+            res.render("verify-payment", {
+                headerText,
+                footerText,
+                transactions: [transaction]
+            });
+        } else {
+            res.status(404).send("Configuration not found for the selected vertical.");
+        }
+    } catch (error) {
+        console.error("Error fetching transactions:", error);
+        res.status(500).send(`Error fetching transactions: ${error.message}`);
     }
-
-    const latestPayment = paymentIntents.data[0];
-    const charges = await stripe.charges.list({
-      payment_intent: latestPayment.id,
-      limit: 1,
-    });
-
-    if (charges.data.length === 0) {
-      return res.status(404).send("No charges found for the latest transaction.");
-    }
-
-    const latestCharge = charges.data[0];
-
-    const transaction = {
-      id: latestPayment.id,
-      customer: latestCharge.billing_details.name || 'Tarek Ayadi',
-      status: latestPayment.status,
-      amount: latestPayment.amount_received / 100,
-      paidDate: new Date(latestPayment.created * 1000).toLocaleString('en-US', { timeZone: 'America/New_York' }),
-    };
-
-    // Add warranty details to the transaction
-    transaction.warrantyExtension = {
-      warrantyNumber: "BRP-WARRANTY-2024",
-      package: "1-Year Warranty Extension", // Adjust as necessary based on the product selected
-      expirationDate: "2026-08-12" // This should reflect the actual calculated expiration date
-    };
-
-    // Send the latest transaction details, including warranty info, to the webhook
-    await axios.post("https://hooks.us.webexconnect.io/events/381TJKDP3D", {
-      transaction
-    });
-
-    // Render the verify-payment view with the transaction details
-    res.render("verify-payment", { transactions: [transaction] });
-  } catch (error) {
-    console.error("Error fetching transactions:", error);
-    res.status(500).send(`Error fetching transactions: ${error.message}`);
-  }
-});
-
-// Route: Verify Warranty Input Page (GET)
-app.get("/verify-warranty", (req, res) => {
-  res.render("verify-warranty");
-});
-
-// Route: Handle Warranty Verification Submission (POST)
-app.post("/verify-warranty", (req, res) => {
-  const { productId, serialNumber } = req.body;
-
-  const productDetails = {
-    "SKI-DOO-MXZ-XRS-850": {
-      productName: "Ski-Doo MXZ X-RS 850 E-TEC",
-      serialNumber: "SN123456789",
-      purchaseDate: "2021-08-15",
-      originalWarrantyPeriod: "2 years",
-      originalExpirationDate: "2023-08-15",
-    },
-  };
-
-  let warrantyStatus = "expired";  // Default to expired for demonstration
-
-  // Check if the product exists and if the serial number matches
-  if (productDetails[productId] && productDetails[productId].serialNumber === serialNumber) {
-    const productInfo = productDetails[productId];
-    res.render("verify-warranty-result", { productInfo, warrantyStatus });
-  } else {
-    console.error("Product ID or Serial Number not found.");
-    res.status(404).send("Product ID or Serial Number not found.");
-  }
 });
 
 // Start the server

@@ -1,46 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Verify Payment - BRP Services</title>
-  <link rel="stylesheet" href="/style.css"> <!-- Updated to link to the correct stylesheet -->
+    <meta charset="UTF-8">
+    <title><%= headerText %></title>
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <header>
-    <h1>BRP Services</h1>
-    <nav>
-      <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/verify-payment">Verify Payment</a></li>
-      </ul>
-    </nav>
-  </header>
-  <main>
-    <h1>Verify Payment</h1>
-    <table>
-      <thead>
-        <tr>
-          <th>Transaction ID</th>
-          <th>Customer</th>
-          <th>Status</th>
-          <th>Amount</th>
-          <th>Paid Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% transactions.forEach(transaction => { %>
-          <tr>
-            <td><%= transaction.id %></td>
-            <td><%= transaction.customer %></td>
-            <td><%= transaction.status %></td>
-            <td>$<%= transaction.amount.toFixed(2) %></td>
-            <td><%= transaction.paidDate %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </main>
-  <footer>
-    <p>&copy; 2024 Tarek Manufacturing Services. All rights reserved.</p>
-  </footer>
+    <header>
+        <h1><%= headerText %></h1>
+    </header>
+    <main>
+        <h2>Transaction Details</h2>
+        <table>
+            <tr>
+                <th>Transaction ID</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Amount</th>
+                <th>Paid Date</th>
+            </tr>
+            <% transactions.forEach(transaction => { %>
+                <tr>
+                    <td><%= transaction.id %></td>
+                    <td><%= transaction.customer %></td>
+                    <td><%= transaction.status %></td>
+                    <td><%= transaction.amount %></td>
+                    <td><%= transaction.paidDate %></td>
+                </tr>
+            <% }) %>
+        </table>
+    </main>
+    <footer>
+        <p><%= footerText %></p>
+    </footer>
 </body>
 </html>
