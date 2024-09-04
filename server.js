@@ -19,55 +19,31 @@ app.use(express.static("public"));
 // Route: Home Page (GET)
 app.get("/", async (req, res) => {
     try {
-        // Fetch the current active vertical(s) from the "Current Vertical" table
-        const verticalRecords = await base('Current Vertical').select({
-            maxRecords: 1
-        }).firstPage();
+        const verticalRecords = await base('Current Vertical').select({ maxRecords: 1 }).firstPage();
 
-        // Log the raw vertical records
-        console.log("Raw Vertical Records:", verticalRecords);
-
-        // Ensure that verticalRecords has data
         if (verticalRecords.length === 0 || !verticalRecords[0].fields['Vertical']) {
-            console.log("No active verticals found.");
             return res.status(404).send("No active verticals found in Airtable.");
         }
 
         const activeVertical = verticalRecords[0].fields['Vertical'];
 
-        // Log the active vertical
-        console.log("Active Vertical:", activeVertical);
-
-        // Fetch the configuration for the active vertical from the "Configuration Table"
         const configRecords = await base('Configuration Table').select({
             filterByFormula: `{Vertical} = '${activeVertical}'`
         }).firstPage();
 
-        // Log the configuration records
-        console.log("Configuration Records:", configRecords);
-
         if (configRecords.length > 0) {
-            // Log the raw actionText data
-            console.log("Raw actionText Data:", configRecords[0].fields['actionText']);
-
-            // Safely parse the JSON, checking if the field is not empty or undefined
             const actionTextsField = configRecords[0].fields['actionText'];
-            console.log("Action Texts Field:", actionTextsField);
-
             const actionTexts = actionTextsField ? JSON.parse(actionTextsField) : {};
-
-            // Log parsed actionTexts to ensure it's an object
-            console.log("Parsed actionTexts Object:", actionTexts);
 
             const headerText = actionTexts.headerText || "Default Header";
             const footerText = actionTexts.footerText || "Default Footer Text";
-            const welcomeText = actionTexts.welcomeText || "Welcome to BRP Services";
+            const welcomeText = actionTexts.welcomeText || "Welcome";
             const instructionText = actionTexts.instructionText || "Select an option to get started:";
             const verifyText = actionTexts.verifyText || "Verify";
             const initiateOrderText = actionTexts.initiateOrderText || "Initiate Order";
-            const generateLinkText = actionTexts.generateLinkText || "Generate Payment Link";
+            const verifyPaymentText = actionTexts.verifyPaymentText || "Verify Payment";
+            const homeText = actionTexts.homeText || "Home";  // New: Dynamic Home button text
 
-            // Render the index page with dynamic content
             res.render("index", {
                 headerText,
                 footerText,
@@ -75,11 +51,10 @@ app.get("/", async (req, res) => {
                 instructionText,
                 verifyText,
                 initiateOrderText,
-                generateLinkText
+                verifyPaymentText,
+                homeText
             });
         } else {
-            console.log("No configuration found for the selected vertical.");
-            // Render with default texts if no matching record is found
             res.render("index", {
                 headerText: "Default Header",
                 footerText: "Default Footer Text",
@@ -87,11 +62,11 @@ app.get("/", async (req, res) => {
                 instructionText: "Default Instruction Text",
                 verifyText: "Default Verify Text",
                 initiateOrderText: "Default Initiate Order Text",
-                generateLinkText: "Default Generate Link Text"
+                verifyPaymentText: "Default Verify Payment Text",
+                homeText: "Home"
             });
         }
     } catch (error) {
-        console.error("Error fetching configuration from Airtable:", error);
         res.status(500).send('Server Error');
     }
 });
@@ -229,11 +204,14 @@ app.get("/order", async (req, res) => {
         }).firstPage();
 
         if (configRecords.length > 0) {
-            // Safely parse the JSON fields
+            // Safely parse the JSON fields for orderPageElements and actionTexts
             const orderPageElementsField = configRecords[0].fields['orderPageElements'];
             const orderPageElements = orderPageElementsField ? JSON.parse(orderPageElementsField) : {};
 
-            // Safely parse the product list (assuming it's in the same table)
+            const actionTextsField = configRecords[0].fields['actionText'];
+            const actionTexts = actionTextsField ? JSON.parse(actionTextsField) : {};
+
+            // Safely parse the product list
             const productsField = configRecords[0].fields['ProductVerified'];
             const productsData = productsField ? JSON.parse(productsField) : {};
 
@@ -247,6 +225,7 @@ app.get("/order", async (req, res) => {
             res.render("order", {
                 pageTitle: orderPageElements.pageTitle || "Order Your Product",
                 headerText: orderPageElements.headerText || "Retail Services - Order Your Product",
+                footerText: actionTexts.footerText || "Thank you for your order!", // Use actionTexts for dynamic footer
                 instructionText: orderPageElements.instructionText || "Please fill out the details below to initiate your order.",
                 firstNameLabel: orderPageElements.firstNameLabel || "First Name",
                 lastNameLabel: orderPageElements.lastNameLabel || "Last Name",
@@ -266,89 +245,91 @@ app.get("/order", async (req, res) => {
 
 // Route: Handle Order Submission (POST)
 app.post("/order", async (req, res) => {
-  const { firstName, lastName, product } = req.body; // Here `product` is the selected Product ID.
+    const { firstName, lastName, product } = req.body;
 
-  try {
-    // Fetch the current active vertical
-    const verticalRecords = await base('Current Vertical').select({}).firstPage();
-    const activeVertical = verticalRecords[0].fields['Vertical'];
+    try {
+        const verticalRecords = await base('Current Vertical').select({}).firstPage();
+        const activeVertical = verticalRecords[0].fields['Vertical'];
 
-    // Fetch the ProductVerified data for the active vertical
-    const configRecords = await base('Configuration Table').select({
-      filterByFormula: `{Vertical} = '${activeVertical}'`
-    }).firstPage();
+        const configRecords = await base('Configuration Table').select({
+            filterByFormula: `{Vertical} = '${activeVertical}'`
+        }).firstPage();
 
-    if (configRecords.length > 0) {
-      const productVerifiedField = configRecords[0].fields['ProductVerified'];
-      const productVerified = productVerifiedField ? JSON.parse(productVerifiedField) : {};
+        if (configRecords.length > 0) {
+            const productVerifiedField = configRecords[0].fields['ProductVerified'];
+            const productVerified = productVerifiedField ? JSON.parse(productVerifiedField) : {};
 
-      // Fetch the details of the selected product using its ID
-      const productDetails = productVerified[product];
+            const actionTextsField = configRecords[0].fields['actionText'];
+            const actionTexts = actionTextsField ? JSON.parse(actionTextsField) : {};
 
-      if (!productDetails) {
-        throw new Error("Product details are missing or incomplete.");
-      }
+            const productDetails = productVerified[product];
 
-      // Create the payment link using the product details
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: productDetails.productName,
-              },
-              unit_amount: parseInt(productDetails.totalAmount.replace('$', '')) * 100, // Convert to cents
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'payment',
-        success_url: `${req.headers.origin}/success`,
-        cancel_url: `${req.headers.origin}/cancel`,
-      });
+            if (!productDetails) {
+                throw new Error("Product details are missing or incomplete.");
+            }
 
-      // Prepare the orderDetails to be passed to the template
-      const orderDetails = {
-        productName: productDetails.productName,
-        orderId: product, // Assuming the product ID is the order ID
-        totalPrice: productDetails.totalAmount
-      };
+            const session = await stripe.checkout.sessions.create({
+                payment_method_types: ['card'],
+                line_items: [
+                    {
+                        price_data: {
+                            currency: 'usd',
+                            product_data: {
+                                name: productDetails.productName,
+                            },
+                            unit_amount: parseInt(productDetails.totalAmount.replace('$', '')) * 100, // Convert to cents
+                        },
+                        quantity: 1,
+                    },
+                ],
+                mode: 'payment',
+                success_url: `${req.headers.origin}/success`,
+                cancel_url: `${req.headers.origin}/cancel`,
+            });
 
-      // Send the payment link to the webhook (optional)
-      const webhookUrl = "https://hooks.us.webexconnect.io/events/QCVQY3V48T";
-      const message = `Thank you for your order. We have generated a secure payment link for you: ${session.url}`;
+            const orderDetails = {
+                productName: productDetails.productName,
+                orderId: product,
+                totalPrice: productDetails.totalAmount
+            };
 
-      await axios.post(webhookUrl, {
-        text: message,
-      });
+            // Send the payment link to the webhook (optional)
+            const webhookUrl = "https://hooks.us.webexconnect.io/events/QCVQY3V48T";
+            const message = `${actionTexts.welcomeText || "Thank you for your order"}. We have generated a secure payment link for you: ${session.url}`;
 
-      // Render the confirmation page with the payment link and order details
-      res.render("confirm", {
-        firstName,
-        lastName,
-        orderDetails,
-        paymentLink: session.url,
-        footerText: "Thank you for your order!"
-      });
-    } else {
-      res.status(404).send("Configuration not found for the selected vertical.");
+            await axios.post(webhookUrl, { text: message });
+
+            // Render the confirmation page with dynamic content
+            res.render("confirm", {
+                firstName,
+                lastName,
+                orderDetails,
+                paymentLink: session.url,
+                headerText: actionTexts.headerText || "Order Confirmation",
+                footerText: actionTexts.footerText || "Thank you for your order!",
+                confirmThankYouText: actionTexts.confirmThankYouText || "Thank you,",
+                confirmOrderProcessedText: actionTexts.confirmOrderProcessedText || "Your order for the product has been successfully processed.",
+                confirmOrderIDText: actionTexts.confirmOrderIDText || "Order ID:",
+                confirmTotalPriceText: actionTexts.confirmTotalPriceText || "Total Price:",
+                confirmCompletePaymentText: actionTexts.confirmCompletePaymentText || "Complete Payment"
+            });
+        } else {
+            res.status(404).send("Configuration not found for the selected vertical.");
+        }
+    } catch (error) {
+        console.error("Error processing order:", error);
+        res.status(500).send(`Error processing order: ${error.message}`);
     }
-  } catch (error) {
-    console.error("Error processing order:", error);
-    res.status500().send(`Error processing order: ${error.message}`);
-  }
 });
 
 // Route: Payment Success
 app.get("/success", (req, res) => {
-  res.send("Payment successful!");
+    res.send("Payment successful!");
 });
 
 // Route: Payment Cancel
 app.get("/cancel", (req, res) => {
-  res.send("Payment canceled.");
+    res.send("Payment canceled.");
 });
 
 // Route: Verify Payment (GET)
@@ -395,6 +376,15 @@ app.get("/verify-payment", async (req, res) => {
                 paidDate: new Date(latestPayment.created * 1000).toLocaleString('en-US', { timeZone: 'America/New_York' }),
             };
 
+            // Send the payment information to the webhook
+            await axios.post("https://hooks.us.webexconnect.io/events/381TJKDP3D", {
+                transaction
+            }).then(response => {
+                console.log("Webhook sent successfully:", response.data);
+            }).catch(error => {
+                console.error("Error sending webhook:", error);
+            });
+
             // Render the verify-payment view with dynamic content
             res.render("verify-payment", {
                 headerText,
@@ -413,5 +403,5 @@ app.get("/verify-payment", async (req, res) => {
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });

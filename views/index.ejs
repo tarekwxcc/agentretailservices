@@ -9,10 +9,10 @@
     <h1><%= headerText %></h1> <!-- Dynamic header text -->
     <nav>
       <ul>
-        <li><a href="/">Home</a></li>
+        <li><a href="/"><%= homeText %></a></li> <!-- Dynamic Home button text -->
         <li><a href="/order"><%= initiateOrderText %></a></li> <!-- Link for initiating order -->
         <li><a href="/verify"><%= verifyText %></a></li> <!-- Link for the generic verify page -->
-        <li><a href="/verify-payment">Verify Payment</a></li> <!-- Static text for verifying payment -->
+        <li><a href="/verify-payment"><%= verifyPaymentText %></a></li> <!-- Dynamic Verify Payment button text -->
       </ul>
     </nav>
   </header>
@@ -22,11 +22,11 @@
     <ul>
       <li><a href="/verify"><%= verifyText %></a></li> <!-- Link for the generic verify page -->
       <li><a href="/order"><%= initiateOrderText %></a></li> <!-- Link for initiating order -->
-      <li><a href="/verify-payment">Verify Payment</a></li> <!-- Static text for verifying payment -->
+      <li><a href="/verify-payment"><%= verifyPaymentText %></a></li> <!-- Dynamic Verify Payment button text -->
     </ul>
   </main>
   <footer>
-    <p><%= footerText %></p>
+    <p><%- footerText %></p>
   </footer>
 </body>
 </html>

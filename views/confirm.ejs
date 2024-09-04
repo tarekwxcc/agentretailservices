@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Order Confirmation</title>
+  <title><%= headerText %></title> <!-- Dynamic header title -->
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <header>
-    <h1>Order Confirmation</h1>
+    <h1><%= headerText %></h1> <!-- Dynamic header text -->
   </header>
   <main>
-    <p>Thank you, <%= firstName %> <%= lastName %>.</p>
-    <p>Your order for the product <%= orderDetails.productName %> has been successfully processed.</p>
-    <p>Order ID: <%= orderDetails.orderId %></p>
-    <p>Total Price: <%= orderDetails.totalPrice %></p>
-    <a href="<%= paymentLink %>">Complete Payment</a>
+    <p><%= confirmThankYouText %> <%= firstName %> <%= lastName %>.</p>
+    <p><%= confirmOrderProcessedText %> <%= orderDetails.productName %>.</p>
+    <p><%= confirmOrderIDText %> <%= orderDetails.orderId %></p>
+    <p><%= confirmTotalPriceText %> <%= orderDetails.totalPrice %></p>
+    <a href="<%= paymentLink %>"><%= confirmCompletePaymentText %></a>
   </main>
   <footer>
-    <p><%= footerText %></p>
+    <p><%- footerText %></p> <!-- Dynamic footer text -->
   </footer>
 </body>
 </html>

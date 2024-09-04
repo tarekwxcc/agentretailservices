@@ -1,26 +1,25 @@
 /* Base Styles */
 body {
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  background-color: #ffffff; /* White background for a clean look */
-  color: #333; /* Dark gray text for readability */
+  font-family: 'Roboto', Arial, sans-serif; /* Font similar to Cisco's site */
+  background-color: #f2f2f2; /* Light gray background */
+  color: #333; /* Standard text color */
   margin: 0;
   padding: 0;
 }
 
 /* Header */
 header {
-  background-color: #000; /* Black header */
-  color: white;
+  background-color: #005073; /* Cisco's dark blue */
+  color: #ffffff;
   padding: 20px 0;
   text-align: center;
-  font-weight: bold;
-  font-size: 18px;
-  letter-spacing: 1.5px;
 }
 
 header h1 {
   margin: 0;
   font-size: 28px;
+  font-weight: 500;
+  color: #f0f0f0; /* Lighter gray for better contrast */
 }
 
 /* Navigation */
@@ -30,7 +29,7 @@ nav ul {
   margin: 0;
   display: flex;
   justify-content: center;
-  background-color: #111; /* Dark gray for the navigation bar */
+  background-color: #007a9a; /* Lighter blue for the navigation bar */
 }
 
 nav ul li {
@@ -41,14 +40,14 @@ nav ul li a {
   color: white;
   text-decoration: none;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 16px;
   padding: 15px 20px;
   display: block;
   transition: background-color 0.3s, color 0.3s;
 }
 
 nav ul li a:hover {
-  background-color: #007aff; /* Blue hover effect similar to BRP */
+  background-color: #004458; /* Darker blue on hover */
   color: #ffffff;
   border-radius: 5px;
 }
@@ -62,10 +61,10 @@ main {
 }
 
 h1 {
-  color: #222;
-  font-size: 32px;
+  color: #005073;
+  font-size: 36px;
   margin-bottom: 20px;
-  letter-spacing: 1px;
+  font-weight: 500;
 }
 
 p {
@@ -75,7 +74,7 @@ p {
 
 /* Buttons */
 button, input[type="submit"] {
-  background-color: #007aff; /* Blue button color similar to BRP */
+  background-color: #007a9a; /* Primary button color */
   color: white;
   border: none;
   padding: 12px 30px;
@@ -87,14 +86,14 @@ button, input[type="submit"] {
 }
 
 button:hover, input[type="submit"]:hover {
-  background-color: #005bb5; /* Darker blue on hover */
+  background-color: #004458; /* Darker blue on hover */
 }
 
 /* Forms */
 form {
   max-width: 600px;
   margin: 0 auto;
-  background-color: #f7f7f7; /* Light gray background for forms */
+  background-color: #ffffff; /* White background for forms */
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -122,7 +121,7 @@ table, th, td {
 }
 
 th {
-  background-color: #f1f1f1;
+  background-color: #f2f2f2;
   font-weight: bold;
   padding: 12px;
 }
@@ -134,21 +133,20 @@ td {
 
 /* Footer */
 footer {
-  background-color: #111; /* Dark footer */
+  background-color: #007a9a; /* Dark footer similar to the header */
   color: white;
   text-align: center;
   padding: 15px 0;
   font-size: 14px;
-  letter-spacing: 1px;
 }
 
 /* Links */
 a {
-  color: #007aff;
+  color: #007a9a;
   text-decoration: none;
   transition: color 0.3s;
 }
 
 a:hover {
-  color: #005bb5; /* Darker blue on hover */
+  color: #004458; /* Darker blue on hover */
 }
