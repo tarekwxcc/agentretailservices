@@ -8,13 +8,15 @@ const app = express();
 // Set up Airtable
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base('appOMn7frxGPNwEOz');
 
+// Middleware to handle raw body for webhooks
+app.use('/webhook', express.raw({type: 'application/json'})); // Important for Stripe to validate signature
+
 // Middleware setup
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.set("view engine", "ejs");
 app.use(express.static("public"));
-
 
 // Route: Home Page (GET)
 app.get("/", async (req, res) => {
@@ -43,6 +45,7 @@ app.get("/", async (req, res) => {
             const initiateOrderText = actionTexts.initiateOrderText || "Initiate Order";
             const verifyPaymentText = actionTexts.verifyPaymentText || "Verify Payment";
             const homeText = actionTexts.homeText || "Home";  // New: Dynamic Home button text
+            
 
             res.render("index", {
                 headerText,
@@ -293,11 +296,16 @@ app.post("/order", async (req, res) => {
                 totalPrice: productDetails.totalAmount
             };
 
-            // Send the payment link to the webhook (optional)
-            const webhookUrl = "https://hooks.us.webexconnect.io/events/QCVQY3V48T";
-            const message = `${actionTexts.welcomeText || "Thank you for your order"}. We have generated a secure payment link for you: ${session.url}`;
+            // NEW: Fetch paymentLinkMessage from Airtable
+            const paymentLinkMessage = actionTexts.paymentLinkMessage || "Thank you for your order. We have generated a secure payment link for you: {{paymentLink}}";
+            
+               // Send the payment link to the webhook
+                const webhookUrl = "https://hooks.us.webexconnect.io/events/QCVQY3V48T";
 
-            await axios.post(webhookUrl, { text: message });
+                // Replace the placeholder {{paymentLink}} with the actual session URL
+                const message = paymentLinkMessage.replace("{{paymentLink}}", session.url);
+
+                await axios.post(webhookUrl, { text: message });
 
             // Render the confirmation page with dynamic content
             res.render("confirm", {
@@ -376,15 +384,6 @@ app.get("/verify-payment", async (req, res) => {
                 paidDate: new Date(latestPayment.created * 1000).toLocaleString('en-US', { timeZone: 'America/New_York' }),
             };
 
-            // Send the payment information to the webhook
-            await axios.post("https://hooks.us.webexconnect.io/events/381TJKDP3D", {
-                transaction
-            }).then(response => {
-                console.log("Webhook sent successfully:", response.data);
-            }).catch(error => {
-                console.error("Error sending webhook:", error);
-            });
-
             // Render the verify-payment view with dynamic content
             res.render("verify-payment", {
                 headerText,
@@ -398,6 +397,56 @@ app.get("/verify-payment", async (req, res) => {
         console.error("Error fetching transactions:", error);
         res.status(500).send(`Error fetching transactions: ${error.message}`);
     }
+});
+
+// Webhook route to handle Stripe events
+app.post("/webhook", async (req, res) => {
+    const sig = req.headers['stripe-signature']; // Get signature from headers
+    let event;
+
+    console.log("Received raw body:", req.body); // <-- Debugging raw body
+
+    try {
+        // Verify the event by constructing it using the raw body and the signing secret
+        event = stripe.webhooks.constructEvent(req.body, sig, 'whsec_W46Mf3kVBfmAfsFTJ3OSA6Ld8rktCP3Y'); // Use your actual signing secret
+    } catch (err) {
+        console.error(`Webhook signature verification failed: ${err.message}`);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Handle the event
+    switch (event.type) {
+        case 'payment_intent.succeeded':
+            const paymentIntent = event.data.object; // Contains information about the payment
+
+            // Prepare the transaction data to send to the second webhook
+            const transaction = {
+                id: paymentIntent.id,
+                amount: paymentIntent.amount_received / 100, // Convert amount to dollars
+                currency: paymentIntent.currency,
+                status: paymentIntent.status,
+                customer: paymentIntent.customer || "Anonymous Customer",
+                paymentMethod: paymentIntent.payment_method,
+                paymentDate: new Date(paymentIntent.created * 1000).toLocaleString('en-US', { timeZone: 'America/New_York' }),
+            };
+
+            // Send the payment info to the external webhook
+            try {
+                await axios.post("https://hooks.us.webexconnect.io/events/381TJKDP3D", {
+                    transaction
+                });
+                console.log("Payment information sent successfully to the webhook.");
+            } catch (error) {
+                console.error("Error sending payment info to webhook:", error);
+            }
+
+            break;
+        default:
+            console.log(`Unhandled event type ${event.type}`);
+    }
+
+    // Return a 200 response to acknowledge receipt of the event
+    res.status(200).send();
 });
 
 // Start the server
